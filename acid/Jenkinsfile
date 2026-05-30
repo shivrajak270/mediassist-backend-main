@@ -31,7 +31,7 @@ pipeline{
             steps {
                 sshagent(credentials: ['vm-ssh-key']) {
                     sh '''
-                            ssh -tt shivraj@192.168.64.5 "sudo systemctl restart mainapp"
+                            ssh -o BatchMode=yes shivraj@192.168.64.5 "sudo systemctl restart mainapp"
                      '''
                 }
             }
