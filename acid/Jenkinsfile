@@ -1,0 +1,41 @@
+pipeline{
+    agent any
+     environment {
+        PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/opt/homebrew/Cellar/maven/3.9.16/libexec/bin:${env.PATH}"
+    }
+    stages {
+        stage('Checkout code') {
+            steps {
+                        git branch: 'main',
+                        url: 'https://github.com/shivrajak270/Bloomdev.git'
+            }
+        }
+        stage('Build') {
+            steps {
+                    sh 'mvn clean install -DskipTests'
+            }
+        }
+        stage('Deploy to vm'){
+            steps{
+                sshagent(credentials: ['vm-ssh-key']) {
+                    sh '''
+                        scp -o StrictHostKeyChecking=no target/demo-0.0.1-SNAPSHOT.jar shivraj@192.168.64.5:/home/shivraj/backend_main/demo-0.0.1-SNAPSHOT.jar
+                           '''
+                }
+
+                }
+
+
+        }
+        stage('Start New Application') {
+            steps {
+                sshagent(credentials: ['vm-ssh-key']) {
+                    sh '''
+                     systemctl restart mainapp
+                     '''
+                }
+            }
+        }
+
+    }
+}
