@@ -32,7 +32,7 @@ pipeline{
                 sshagent(credentials: ['vm-ssh-key']) {
                     sh '''
                            ssh -o StrictHostKeyChecking=no shivraj@192.168.64.5 "
-                     sudo systemctl restart mainapp
+                           sudo -n systemctl restart mainapp
                      "
                      '''
                 }
