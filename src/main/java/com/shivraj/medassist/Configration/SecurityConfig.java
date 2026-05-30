@@ -44,8 +44,8 @@ public class SecurityConfig {
             // 🔐 Authorization rules
             .authorizeHttpRequests(request -> request
                 .requestMatchers("/auth/resister/**", "/auth/login/**").permitAll()
-                .requestMatchers("/pharmasists/**").hasRole("PHARMACIST")
-                .requestMatchers("/users/**").hasRole("USER")
+                .requestMatchers("/pharmasists/**").hasAuthority("PHARMACIST")
+                .requestMatchers("/users/**").hasAuthority("USER")
                 .anyRequest().authenticated()
             )
 
