@@ -21,6 +21,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import jakarta.servlet.http.Cookie;
 
 
 import java.io.IOException;
@@ -39,13 +40,25 @@ public class jwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String username=null;
-        String token = "";
-        String authorizationHeader = request.getHeader("Authorization");
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-           token = authorizationHeader.substring(7);
-           username=jwtServiceImpl.extractUserName(token);
+        String username = null;
+        String token = null;
+
+        Cookie[] cookies = request.getCookies();
+
+        if (cookies != null) {
+
+            for (Cookie cookie : cookies) {
+
+                if ("jwt".equals(cookie.getName())) {
+
+                    token = cookie.getValue();
+                    username = jwtServiceImpl.extractUserName(token);
+                    break;
+                }
+            }
         }
+        System.out.println("TOKEN = " + token);
+        System.out.println("USERNAME = " + username);
         if(username!=null && SecurityContextHolder.getContext().getAuthentication()==null)
         {
             UserDetails userDetails=applicationContext.getBean(UserdetailService.class).loadUserByUsername(username);

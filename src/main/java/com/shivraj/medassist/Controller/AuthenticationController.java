@@ -5,18 +5,27 @@ import com.shivraj.medassist.Dto.PharmasistDTO;
 import com.shivraj.medassist.Dto.UsersDTO;
 import com.shivraj.medassist.Models.Pharmacists;
 import com.shivraj.medassist.Models.Users;
+import com.shivraj.medassist.Repository.UsersRepo;
 import com.shivraj.medassist.Service.UsersService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "*")
 public class AuthenticationController {
     @Autowired
     private UsersService usersService;
+
+    @Autowired
+    private UsersRepo usersRepo;
+
 
 
     @PostMapping("/resister")
@@ -36,9 +45,34 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody Users users){
+    public ResponseEntity<String> login(@RequestBody Users users, HttpServletResponse response){
         String ans=usersService.verify(users);
-        return ResponseEntity.ok(ans);
+        ResponseCookie cookie = ResponseCookie.from("jwt", ans)
+                .httpOnly(true)
+                .secure(false) // true in production HTTPS
+                .path("/")
+                .maxAge(15 * 60)
+                .sameSite("Lax")
+                .build();
+
+        response.addHeader("Set-Cookie", cookie.toString());
+
+        return ResponseEntity.ok("Login Success");
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> me(Authentication auth) {
+
+        String username = auth.getName();
+
+        Users user = usersRepo.findByUsername(username);
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "username", user.getUsername(),
+                        "role", user.getRole()
+                )
+        );
     }
 
 
